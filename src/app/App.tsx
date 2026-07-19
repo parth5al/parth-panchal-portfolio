@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Logo } from "./components/Logo";
 import { Sidebar } from "./components/Sidebar";
 import { Hero } from "./components/Hero";
 import { About } from "./components/About";
@@ -15,9 +16,17 @@ export default function App() {
   const [active, setActive] = useState("about");
   const [aboutOpen, setAboutOpen] = useState(false);
   const [caseOpen, setCaseOpen] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [fade, setFade] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Loader timer
+    const timer = setTimeout(() => {
+      setFade(true);
+      setTimeout(() => setLoading(false), 500);
+    }, 1500);
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -30,7 +39,11 @@ export default function App() {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
-    return () => observer.disconnect();
+    });
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
 
   const navigate = (id: string) => {
@@ -39,6 +52,19 @@ export default function App() {
 
   return (
     <div className="bg-[#0a0a0b] h-screen w-full flex overflow-hidden">
+      {/* Loader */}
+      {loading && (
+        <div
+          className={`fixed inset-0 z-[999] flex items-center justify-center bg-[#0a0a0b] transition-opacity duration-500 ease-in-out ${
+            fade ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          <div className="animate-pulse">
+            <Logo size={100} />
+          </div>
+        </div>
+      )}
+
       {/* Fixed sidebar */}
       <aside className="hidden md:block w-[240px] shrink-0 h-full">
         <Sidebar active={active} onNavigate={navigate} />

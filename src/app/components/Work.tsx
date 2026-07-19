@@ -24,15 +24,15 @@ type Block = {
   eyebrow: string;
 };
 
-const BLOCKS: Block[] = [
+export const BLOCKS: Block[] = [
   // ── EHR products ──
   { id: "sunoh", kind: "ehr", eyebrow: "EHR", title: "AI SCRIBE APP", desc: "The AI scribe that turns a patient conversation into a ready-to-sign note.", chip: "40% LESS DOCUMENTATION TIME", cover: img2 },
   { id: "smart", kind: "ehr", eyebrow: "EHR", title: "SMART UNIVERSITY", desc: "A giant learning library you can simply ask.", chip: "4,891 USERS IN 2 WEEKS", cover: img4 },
   { id: "mobile", kind: "ehr", eyebrow: "EHR", title: "EHR MOBILE APP", desc: "A legacy clinical app, rebuilt for how care actually moves.", chip: "3 PATTERNS → 1", cover: img3 },
   { id: "wound", kind: "ehr", eyebrow: "EHR", title: "WOUND CARE", desc: "Wound documentation finally got a home — desktop to point-of-care.", chip: "12 STEPS → 1 MODULE", cover: img8 },
   // ── Independent work (distinct) ──
-  { id: "satya", kind: "solo", eyebrow: "INDEPENDENT", title: "SATYANETRA", desc: "An intelligence platform for verifying what's real.", chip: "ENTIRE MVP, END TO END", cover: img5 },
-  { id: "hack", kind: "solo", eyebrow: "INDEPENDENT", title: "HACKELITE", desc: "Broken UX to conversion-first, designed and shipped solo.", chip: "DESIGN → LIVE", cover: img7 },
+  { id: "satya", kind: "solo", eyebrow: "INDEPENDENT", title: "SATYANETRA", desc: "An intelligence platform for verifying what's real.", chip: "ENTIRE MVP, END TO END", cover: img7 },
+  { id: "hack", kind: "solo", eyebrow: "INDEPENDENT", title: "HACKELITE", desc: "Broken UX to conversion-first, designed and shipped solo.", chip: "DESIGN → LIVE", cover: img5 },
   { id: "xspaces", kind: "solo", eyebrow: "INDEPENDENT · ONGOING", title: "XSPACES", desc: "An AI-powered real-estate SaaS, built from scratch — ongoing.", chip: "ONGOING · 0→1", cover: img6 },
 ];
 
@@ -42,11 +42,15 @@ function Card({ block, onOpen }: { block: Block; onOpen?: () => void }) {
 
   // per-kind accents
   const accent = isSolo ? "#00e5ff" : "#ed1c24";
-  const shell = isCategory
+  let shell = isCategory
     ? "bg-[#141416] border-[3px] border-[#ed1c24] shadow-[0_0_50px_rgba(237,28,36,0.18)]"
     : isSolo
       ? "bg-[#141416] border border-[rgba(0,229,255,0.35)]"
       : "bg-[#141416] border border-white/5";
+
+  if (block.id === "xspaces") {
+    shell = "bg-[#141416] border-2 border-dashed border-green-500";
+  }
 
   return (
     <article

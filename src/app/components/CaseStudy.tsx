@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { PixelText } from "./PixelText";
 import { CASES, type CaseData, type Option, type JourneyGroup } from "./caseData";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { BLOCKS } from "./Work";
 
 const MONO = "'JetBrains Mono', monospace";
 const BODY = "Inter, sans-serif";
@@ -170,7 +172,9 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
 
   // reset scroll + progress when switching case
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    }, 10);
     setProgress(0);
     setChapter("context");
   }, [id]);
@@ -210,18 +214,22 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
       {/* Chapter nav */}
       <div className="sticky top-[60px] z-10 bg-[#0a0a0b]/95 backdrop-blur border-b border-[rgba(244,242,240,0.08)] px-[24px] py-[12px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex items-center gap-[8px] max-w-[1200px] mx-auto whitespace-nowrap">
-          {CHAPTERS.map((c, i) => (
-            <div key={c.id} className="flex items-center gap-[8px]">
-              {i > 0 && <span className="text-[#4a4a4e]">—</span>}
-              <button
-                onClick={() => jump(c.id)}
-                className={`tracking-[1.5px] transition-colors ${chapter === c.id ? "text-[#ed1c24]" : "text-[#9a9ca1] hover:text-[#f4f2f0]"}`}
-                style={{ fontFamily: MONO, fontWeight: 600, fontSize: "11px" }}
-              >
-                {c.label}
-              </button>
-            </div>
-          ))}
+          {CHAPTERS.map((c, i) => {
+            const isEHR = BLOCKS.find((b) => b.id === id)?.kind === "ehr";
+            const label = c.id === "highlights" && isEHR ? "FIGMA DECK" : c.label;
+            return (
+              <div key={c.id} className="flex items-center gap-[8px]">
+                {i > 0 && <span className="text-[#4a4a4e]">—</span>}
+                <button
+                  onClick={() => jump(c.id)}
+                  className={`tracking-[1.5px] transition-colors ${chapter === c.id ? "text-[#ed1c24]" : "text-[#9a9ca1] hover:text-[#f4f2f0]"}`}
+                  style={{ fontFamily: MONO, fontWeight: 600, fontSize: "11px" }}
+                >
+                  {label}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -247,7 +255,16 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
             />
             <Body className="max-w-[560px]">{data.oneLiner}</Body>
           </div>
-          <ImgPanel caption="HERO" className="lg:col-span-1 min-h-[300px] rounded-[22px]" />
+          {(() => {
+            const block = BLOCKS.find((b) => b.id === id);
+            return block ? (
+              <div className="lg:col-span-1 min-h-[300px] rounded-[22px] overflow-hidden relative border border-[rgba(244,242,240,0.08)]">
+                <ImageWithFallback src={block.cover} alt={data.title} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <ImgPanel caption="HERO" className="lg:col-span-1 min-h-[300px] rounded-[22px]" />
+            );
+          })()}
 
           <MetaCard label={data.metaLabels?.role ?? "ROLE"} value={data.meta.role} />
           <MetaCard label={data.metaLabels?.scope ?? "SCOPE"} value={data.meta.scope} />
@@ -306,16 +323,43 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
         </section>
 
         {/* HIGHLIGHTS bento */}
-        <section id="highlights" className="scroll-mt-[130px] flex flex-col gap-[16px]">
-          <div className="bg-[#141416] rounded-[22px] p-[28px]">
-            <ScrambleHeader text="HIGHLIGHTS" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-[16px] auto-rows-[minmax(200px,auto)]">
-            {data.highlights.map((h, i) => (
-              <ImgPanel key={h} caption={h} className={i === 0 ? "md:col-span-2 md:row-span-2" : "md:col-span-1"} />
-            ))}
-          </div>
-        </section>
+        {(() => {
+          const isEHR = BLOCKS.find((b) => b.id === id)?.kind === "ehr";
+          if (isEHR) {
+            return (
+              <section id="highlights" className="scroll-mt-[130px] flex flex-col gap-[16px]">
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-[#ed1c24] rounded-[22px] p-[48px] flex flex-col items-center justify-center gap-[16px] hover:bg-[#d61920] transition-colors group cursor-pointer text-center"
+                >
+                  <span className="text-[#0a0a0b] tracking-[2px]" style={{ fontFamily: MONO, fontWeight: 600, fontSize: "14px" }}>
+                    NDA PROTECTED
+                  </span>
+                  <h2 className="text-[#0a0a0b]" style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(20px,3vw,36px)", lineHeight: 1.4 }}>
+                    LINK TO FIGMA DECK ↗
+                  </h2>
+                  <span className="text-[#0a0a0b]/80 max-w-[400px]" style={{ fontFamily: BODY, fontSize: "15px" }}>
+                    Due to NDA, detailed design artifacts are available upon request. Click to view the deck.
+                  </span>
+                </a>
+              </section>
+            );
+          }
+          return (
+            <section id="highlights" className="scroll-mt-[130px] flex flex-col gap-[16px]">
+              <div className="bg-[#141416] rounded-[22px] p-[28px]">
+                <ScrambleHeader text="HIGHLIGHTS" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-[16px] auto-rows-[minmax(200px,auto)]">
+                {data.highlights.map((h, i) => (
+                  <ImgPanel key={h} caption={h} className={i === 0 ? "md:col-span-2 md:row-span-2" : "md:col-span-1"} />
+                ))}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* OUTCOME bento */}
         <section id="outcome" className="scroll-mt-[130px] flex flex-col gap-[16px]">
@@ -340,7 +384,11 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
         {/* NEXT */}
         {data.next && (
           <button
-            onClick={() => onOpen(data.next!.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpen(data.next!.id);
+            }}
             className="group text-left w-full rounded-[22px] bg-[#141416] p-[36px] flex flex-col gap-[10px] hover:bg-[#ed1c24] transition-colors duration-150"
           >
             <span className="text-[#ed1c24] group-hover:text-[#0a0a0b] tracking-[2px] transition-colors" style={{ fontFamily: MONO, fontWeight: 600, fontSize: "11px" }}>NEXT →</span>

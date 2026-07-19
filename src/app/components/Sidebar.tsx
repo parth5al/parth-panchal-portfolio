@@ -87,7 +87,7 @@ function NavCard({
       }`}
     >
       <div className="overflow-clip rounded-[inherit] size-full">
-        <div className="flex flex-col gap-[56px] items-start p-[12px] relative size-full">
+        <div className="flex flex-col gap-[32px] items-start p-[12px] relative size-full">
           <div className="flex items-center justify-between w-full whitespace-nowrap">
             <div className="flex items-center gap-[10px]">
               <PixelIcon

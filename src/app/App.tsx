@@ -39,7 +39,6 @@ export default function App() {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
-    });
     return () => {
       observer.disconnect();
       clearTimeout(timer);

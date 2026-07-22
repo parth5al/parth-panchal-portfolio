@@ -25,7 +25,7 @@ export default function App() {
     const timer = setTimeout(() => {
       setFade(true);
       setTimeout(() => setLoading(false), 500);
-    }, 1500);
+    }, 3000);
 
     const observer = new IntersectionObserver(
       (entries) => {

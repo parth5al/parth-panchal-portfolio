@@ -36,40 +36,49 @@ export function MobileNav({ onNavigate }: { onNavigate: (id: string) => void }) 
         </button>
       </div>
 
-      {open && (
-        <div className="md:hidden fixed inset-0 z-50 bg-[#0a0a0b] flex flex-col p-[24px]">
-          <div className="flex justify-end">
-            <button
-              onClick={() => setOpen(false)}
-              className="text-[#f4f2f0] text-[11px] tracking-[1.5px]"
-              style={{ fontFamily: MONO, fontWeight: 600 }}
-            >
-              CLOSE ✕
-            </button>
-          </div>
-          <div className="flex flex-col gap-[28px] flex-1 justify-center">
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => go(n.id)}
-                className="text-left text-[#f4f2f0] hover:text-[#ed1c24] transition-colors"
-                style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "28px" }}
-              >
-                {n.label}
-              </button>
-            ))}
-            <button
-              className="text-left text-[#9a9ca1] text-[12px] tracking-[1.5px] mt-[16px]"
-              style={{ fontFamily: MONO, fontWeight: 600 }}
-            >
-              RESUME ↓
-            </button>
-          </div>
-          <p className="text-[#9a9ca1] text-[9.5px] tracking-[1.5px]" style={{ fontFamily: MONO, fontWeight: 600 }}>
-            © PARTH PANCHAL · FEBRUARY 2026 · AHMEDABAD, INDIA
-          </p>
+      {/* Overlay — always mounted, toggled via opacity + translate */}
+      <div
+        className={`md:hidden fixed inset-0 z-50 bg-[#0a0a0b] flex flex-col p-[24px] transition-all duration-300 ease-in ${
+          open ? "opacity-100 pointer-events-auto translate-y-0" : "opacity-0 pointer-events-none -translate-y-4"
+        }`}
+      >
+        <div className="flex justify-end">
+          <button
+            onClick={() => setOpen(false)}
+            className="text-[#f4f2f0] text-[11px] tracking-[1.5px]"
+            style={{ fontFamily: MONO, fontWeight: 600 }}
+          >
+            CLOSE ✕
+          </button>
         </div>
-      )}
+        <div className="flex flex-col gap-[28px] flex-1 justify-center">
+          {NAV.map((n, i) => (
+            <button
+              key={n.id}
+              onClick={() => go(n.id)}
+              className="text-left text-[#f4f2f0] hover:text-[#ed1c24]"
+              style={{
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "28px",
+                opacity: open ? 1 : 0,
+                transform: open ? "translateY(0)" : "translateY(8px)",
+                transition: `opacity 0.35s ease ${i * 60}ms, transform 0.35s ease ${i * 60}ms, color 0.2s`,
+              }}
+            >
+              {n.label}
+            </button>
+          ))}
+          <button
+            className="text-left text-[#9a9ca1] text-[12px] tracking-[1.5px] mt-[16px]"
+            style={{ fontFamily: MONO, fontWeight: 600 }}
+          >
+            RESUME ↓
+          </button>
+        </div>
+        <p className="text-[#9a9ca1] text-[9.5px] tracking-[1.5px]" style={{ fontFamily: MONO, fontWeight: 600 }}>
+          © PARTH PANCHAL · FEBRUARY 2026 · AHMEDABAD, INDIA
+        </p>
+      </div>
     </>
   );
 }

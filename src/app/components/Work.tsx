@@ -31,8 +31,8 @@ export const BLOCKS: Block[] = [
   { id: "mobile", kind: "ehr", eyebrow: "EHR", title: "EHR MOBILE APP", desc: "A legacy clinical app, rebuilt for how care actually moves.", chip: "3 PATTERNS → 1", cover: img3 },
   { id: "wound", kind: "ehr", eyebrow: "EHR", title: "WOUND CARE", desc: "Wound documentation finally got a home — desktop to point-of-care.", chip: "12 STEPS → 1 MODULE", cover: img8 },
   // ── Independent work (distinct) ──
-  { id: "satya", kind: "solo", eyebrow: "INDEPENDENT", title: "SATYANETRA", desc: "An intelligence platform for verifying what's real.", chip: "ENTIRE MVP, END TO END", cover: img7 },
-  { id: "hack", kind: "solo", eyebrow: "INDEPENDENT", title: "HACKELITE", desc: "Broken UX to conversion-first, designed and shipped solo.", chip: "DESIGN → LIVE", cover: img5 },
+  { id: "satya", kind: "solo", eyebrow: "INDEPENDENT", title: "SATYANETRA", desc: "An intelligence platform for verifying what's real.", chip: "ENTIRE MVP, END TO END", cover: img5 },
+  { id: "hack", kind: "solo", eyebrow: "INDEPENDENT", title: "HACKELITE", desc: "Broken UX to conversion-first, designed and shipped solo.", chip: "DESIGN → LIVE", cover: img7 },
   { id: "xspaces", kind: "solo", eyebrow: "INDEPENDENT · ONGOING", title: "XSPACES", desc: "An AI-powered real-estate SaaS, built from scratch — ongoing.", chip: "ONGOING · 0→1", cover: img6 },
 ];
 

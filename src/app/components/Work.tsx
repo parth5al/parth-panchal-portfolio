@@ -178,6 +178,32 @@ function Header({ idx }: { idx: number }) {
   );
 }
 
+function MobileWork({ onOpenCase }: { onOpenCase?: (id: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIdx, setActiveIdx] = useState(1);
+
+  const onScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = el.scrollWidth / BLOCKS.length;
+    const idx = Math.min(BLOCKS.length, Math.floor(el.scrollLeft / cardWidth) + 1);
+    setActiveIdx(idx);
+  };
+
+  return (
+    <section id="work" className="bg-[#101013] rounded-[22px] py-[44px] flex flex-col gap-[28px]">
+      <Header idx={activeIdx} />
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="overflow-x-auto snap-x snap-mandatory scroll-smooth motion-reduce:scroll-auto pb-[8px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <Track onOpenCase={onOpenCase} />
+      </div>
+    </section>
+  );
+}
+
 export function Work({ onOpenCase }: { onOpenCase?: (id: string) => void }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -238,14 +264,7 @@ export function Work({ onOpenCase }: { onOpenCase?: (id: string) => void }) {
 
   // -------- Fallback: simple side-scroll strip (mobile / reduced motion) --------
   if (!pin) {
-    return (
-      <section id="work" className="bg-[#101013] rounded-[22px] py-[44px] flex flex-col gap-[28px]">
-        <Header idx={1} />
-        <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth motion-reduce:scroll-auto pb-[8px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Track onOpenCase={onOpenCase} />
-        </div>
-      </section>
-    );
+    return <MobileWork onOpenCase={onOpenCase} />;
   }
 
   // -------- Pinned horizontal scroll (desktop) --------

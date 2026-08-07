@@ -76,7 +76,7 @@ export function MobileNav({ onNavigate }: { onNavigate: (id: string) => void }) 
           </button>
         </div>
         <p className="text-[#9a9ca1] text-[9.5px] tracking-[1.5px]" style={{ fontFamily: MONO, fontWeight: 600 }}>
-          © PARTH PANCHAL · FEBRUARY 2026 · AHMEDABAD, INDIA
+          © PARTH PANCHAL · {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()} · AHMEDABAD, INDIA
         </p>
       </div>
     </>

@@ -382,20 +382,29 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
         </section>
 
         {/* NEXT */}
-        {data.next && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onOpen(data.next!.id);
-            }}
-            className="group text-left w-full rounded-[22px] bg-[#141416] p-[36px] flex flex-col gap-[10px] hover:bg-[#ed1c24] transition-colors duration-150"
-          >
-            <span className="text-[#ed1c24] group-hover:text-[#0a0a0b] tracking-[2px] transition-colors" style={{ fontFamily: MONO, fontWeight: 600, fontSize: "11px" }}>NEXT →</span>
-            <PixelText text={data.next.title} className="text-[#f4f2f0] group-hover:text-[#0a0a0b] leading-[1.4]" style={{ fontSize: "clamp(18px,2.6vw,34px)" }} />
-            <span className="text-[#9a9ca1] group-hover:text-[#0a0a0b] transition-colors" style={{ fontFamily: BODY, fontSize: "15px" }}>{data.next.oneLiner}</span>
-          </button>
-        )}
+        {(() => {
+          const currentIdx = BLOCKS.findIndex(b => b.id === id);
+          if (currentIdx === -1) return null;
+          const nextBlock = BLOCKS[(currentIdx + 1) % BLOCKS.length];
+          return (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => onOpen(nextBlock.id)}
+              className="group cursor-pointer text-left w-full rounded-[22px] bg-[#141416] overflow-hidden flex flex-col md:flex-row items-stretch border border-[rgba(244,242,240,0.08)] hover:border-[#ed1c24] transition-colors duration-300"
+            >
+              <div className="flex-1 p-[36px] flex flex-col justify-center gap-[12px] relative z-10">
+                <span className="text-[#ed1c24] tracking-[2px]" style={{ fontFamily: MONO, fontWeight: 600, fontSize: "11px" }}>NEXT CASE STUDY →</span>
+                <PixelText text={nextBlock.title} className="text-[#f4f2f0] leading-[1.4]" style={{ fontSize: "clamp(18px,2.6vw,34px)" }} />
+                <span className="text-[#9a9ca1]" style={{ fontFamily: BODY, fontSize: "15px" }}>{nextBlock.desc}</span>
+              </div>
+              <div className="md:w-[45%] min-h-[220px] relative overflow-hidden bg-[#101013]">
+                <ImageWithFallback src={nextBlock.cover} alt={nextBlock.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#141416] via-transparent to-transparent pointer-events-none" />
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

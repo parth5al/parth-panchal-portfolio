@@ -126,6 +126,20 @@
 
   body {
     @apply bg-background text-foreground;
+    cursor: url("/cursor.svg") 0 0, auto;
+  }
+
+  a,
+  button,
+  [role="button"],
+  .cursor-pointer {
+    cursor: url("/cursor.svg") 0 0, pointer;
+  }
+
+  /* Custom cursor scoped to the About section only */
+  .about-cursor,
+  .about-cursor * {
+    cursor: url("/cursor-about.svg") 0 0, auto !important;
   }
 
   /**
@@ -164,13 +178,23 @@
   }
 
   @keyframes grainShift {
-    0% { transform: translate(0, 0); }
-    50% { transform: translate(-6px, 4px); }
-    100% { transform: translate(4px, -6px); }
+    0% {
+      transform: translate(0, 0);
+    }
+
+    50% {
+      transform: translate(-6px, 4px);
+    }
+
+    100% {
+      transform: translate(4px, -6px);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .noise-overlay { animation: none; }
+    .noise-overlay {
+      animation: none;
+    }
   }
 
   h1 {

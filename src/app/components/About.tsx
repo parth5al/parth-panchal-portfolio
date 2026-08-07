@@ -67,13 +67,12 @@ export function About({ onOpenAbout }: { onOpenAbout?: () => void }) {
     <section
       id="about"
       ref={ref}
-      className="grid grid-cols-1 min-[820px]:grid-cols-2 gap-[20px] items-stretch w-full"
+      className="about-cursor grid grid-cols-1 min-[820px]:grid-cols-2 gap-[20px] items-stretch w-full"
     >
       {/* Left card — bio */}
       <div
-        className={`bg-[#141416] flex flex-col justify-between overflow-clip rounded-[22px] flex-1 min-h-[640px] ${cardBase} ${
-          inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-[60px]"
-        }`}
+        className={`bg-[#141416] flex flex-col justify-between overflow-clip rounded-[22px] flex-1 min-h-[640px] ${cardBase} ${inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-[60px]"
+          }`}
       >
         <div className="flex flex-col gap-[36px] items-start px-[24px] py-[44px]">
           <Chip text="ABOUT" />
@@ -133,9 +132,8 @@ export function About({ onOpenAbout }: { onOpenAbout?: () => void }) {
 
       {/* Right card — full-bleed portrait with animated shader (staggered) */}
       <div
-        className={`relative bg-[#141416] overflow-hidden rounded-[22px] flex-1 min-h-[640px] ${cardBase} ${
-          inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-[60px]"
-        }`}
+        className={`relative bg-[#141416] overflow-hidden rounded-[22px] flex-1 min-h-[640px] ${cardBase} ${inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-[60px]"
+          }`}
         style={{ transitionDelay: inView ? "180ms" : "0ms" }}
       >
         <PortraitTile />

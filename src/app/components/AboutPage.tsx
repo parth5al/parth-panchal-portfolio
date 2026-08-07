@@ -108,15 +108,15 @@ function BTile({
 
 function ImgCell({ src, className = "" }: { src: string; className?: string }) {
   return (
-    <div className={`overflow-hidden rounded-[12px] bg-[#0a0a0b] ${className}`}>
-      <img src={src} alt="" className="size-full object-cover" />
+    <div className={`relative overflow-hidden rounded-[12px] bg-[#0a0a0b] h-full w-full ${className}`}>
+      <img src={src} alt="" className="absolute inset-0 size-full object-cover" />
     </div>
   );
 }
 
 export function AboutPage({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a0b] overflow-y-auto">
+    <div className="about-cursor fixed inset-0 z-[100] bg-[#0a0a0b] overflow-y-auto">
       {/* Breadcrumb bar */}
       <div className="sticky top-0 z-10 bg-[#0a0a0b]/95 backdrop-blur border-b border-[rgba(244,242,240,0.1)] px-[24px] py-[16px] flex items-center justify-between">
         <nav className="flex items-center gap-[8px]" style={{ fontFamily: MONO, fontWeight: 600, fontSize: "11px", letterSpacing: "1.5px" }}>
@@ -175,22 +175,19 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
             className="text-[#f4f2f0] leading-[1.4]"
             style={{ fontSize: "clamp(20px,3vw,44px)" }}
           />
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-[16px] auto-rows-[minmax(180px,auto)]">
+          <div className="flex flex-col gap-[16px]">
             <JobTile
-              className="lg:col-span-4 lg:row-span-2"
               company="ECLINICALWORKS"
               period="CURRENTLY HERE SINCE"
               current
               desc="Currently shaping the future of healthcare at eClinicalWorks as a Product Designer — because making healthcare better is a design problem worth solving."
             />
             <JobTile
-              className="lg:col-span-2"
               company="TCULES"
               period="JAN’23 - JAN’24"
               desc="Before this, I had a blast at Tcules, a UX design studio, where I learned tons, made memories, and sharpened my craft."
             />
             <JobTile
-              className="lg:col-span-2"
               company="CIPHERBRAINS"
               period="MAY’22 - JAN’23"
               desc="Even earlier? CipherBrains Technologies, a small but ambitious service-based startup led by visionaries. A tight-knit dream team, big ideas, and bold moves."
@@ -208,7 +205,7 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-[16px] auto-rows-[minmax(160px,auto)]">
             {/* Bikes images */}
-            <div className="lg:col-span-3 lg:row-span-2 grid grid-cols-2 gap-[8px] bg-[#141416] rounded-[22px] p-[12px]">
+            <div className="lg:col-span-3 lg:row-span-2 grid grid-cols-2 grid-rows-2 gap-[8px] bg-[#141416] rounded-[22px] p-[12px] h-full">
               <ImgCell src={img1639} className="row-span-2" />
               <ImgCell src={img1641} />
               <ImgCell src={img1645} />
@@ -245,22 +242,22 @@ export function AboutPage({ onClose }: { onClose: () => void }) {
               <p>It's a good stress buster and I love to compete.</p>
             </BTile>
             {/* Basketball images */}
-            <div className="lg:col-span-3 lg:row-span-2 grid grid-cols-3 gap-[8px] bg-[#141416] rounded-[22px] p-[12px]">
+            <div className="lg:col-span-3 lg:row-span-2 grid grid-cols-3 gap-[8px] bg-[#141416] rounded-[22px] p-[12px] h-full">
               <ImgCell src={img1643} />
               <ImgCell src={img1646} />
               <ImgCell src={img1648} />
             </div>
 
             {/* Books images */}
-            <div className="lg:col-span-3 lg:row-span-2 bg-[#141416] rounded-[22px] p-[16px] flex items-center justify-center overflow-hidden">
+            <div className="lg:col-span-3 lg:row-span-2 bg-[#141416] rounded-[22px] p-[16px] flex items-center justify-center overflow-hidden h-full">
               <div className="flex items-center">
                 {[book1, book2, book3, book4, book5].map((b, i) => (
                   <div
                     key={i}
-                    className="h-[220px] w-[150px] rounded-[10px] overflow-hidden border border-[rgba(244,242,240,0.12)]"
+                    className="h-[220px] w-[150px] rounded-[10px] overflow-hidden border border-[rgba(244,242,240,0.12)] relative"
                     style={{ marginLeft: i === 0 ? 0 : -60 }}
                   >
-                    <img src={b} alt="" className="size-full object-cover" />
+                    <img src={b} alt="" className="absolute inset-0 size-full object-cover" />
                   </div>
                 ))}
               </div>

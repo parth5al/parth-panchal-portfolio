@@ -82,9 +82,8 @@ function NavCard({
   return (
     <button
       onClick={onClick}
-      className={`group relative rounded-[12px] w-full text-left transition-colors duration-200 ${
-        active ? "bg-[#ed1c24]" : "bg-[#141416] hover:bg-[#ed1c24]"
-      }`}
+      className={`group relative rounded-[12px] w-full text-left transition-colors duration-200 ${active ? "bg-[#ed1c24]" : "bg-[#141416] hover:bg-[#ed1c24]"
+        }`}
     >
       <div className="overflow-clip rounded-[inherit] size-full">
         <div className="flex flex-col gap-[32px] items-start p-[12px] relative size-full">
@@ -92,39 +91,35 @@ function NavCard({
             <div className="flex items-center gap-[10px]">
               <PixelIcon
                 name={icon}
-                className={`transition-colors ${
-                  active
+                className={`transition-colors ${active
                     ? "text-[#0a0a0b]"
                     : "text-[#ed1c24] group-hover:text-[#0a0a0b]"
-                }`}
+                  }`}
               />
               <p
-                className={`text-[13px] transition-colors ${
-                  active
+                className={`text-[13px] transition-colors ${active
                     ? "text-[#0a0a0b]"
                     : "text-[#ed1c24] group-hover:text-[#0a0a0b]"
-                }`}
+                  }`}
                 style={{ fontFamily: MONO }}
               >
                 {num}
               </p>
             </div>
             <p
-              className={`text-[15px] transition-colors ${
-                active
+              className={`text-[15px] transition-colors ${active
                   ? "text-[#0a0a0b]"
                   : "text-[#f4f2f0] group-hover:text-[#0a0a0b]"
-              }`}
+                }`}
             >
               ↗
             </p>
           </div>
           <p
-            className={`text-[16px] w-full transition-colors ${
-              active
+            className={`text-[16px] w-full transition-colors ${active
                 ? "text-[#0a0a0b]"
                 : "text-[#f4f2f0] group-hover:text-[#0a0a0b]"
-            }`}
+              }`}
             style={{ fontFamily: MONO, fontWeight: 600 }}
           >
             {label}
@@ -135,9 +130,14 @@ function NavCard({
   );
 }
 
-function SocialChip({ label }: { label: string }) {
+function SocialChip({ label, href }: { label: string; href: string }) {
   return (
-    <button className="bg-[#141416] flex-1 min-w-px relative rounded-[8px] hover:bg-[#1d1d20] transition-colors">
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="bg-[#141416] flex-1 min-w-px relative rounded-[8px] hover:bg-[#1d1d20] transition-colors"
+    >
       <div className="flex items-center justify-center p-[12px] size-full">
         <p
           className="text-[#9a9ca1] text-[10px] tracking-[1px] whitespace-nowrap"
@@ -146,7 +146,7 @@ function SocialChip({ label }: { label: string }) {
           {label}
         </p>
       </div>
-    </button>
+    </a>
   );
 }
 
@@ -209,9 +209,9 @@ export function Sidebar({
           </button>
         </div>
         <div className="flex gap-[12px] items-center w-full">
-          <SocialChip label="IG" />
-          <SocialChip label="IN" />
-          <SocialChip label="TW" />
+          <SocialChip label="IG" href="https://www.instagram.com/parth.design/" />
+          <SocialChip label="IN" href="https://www.linkedin.com/in/parth5al/" />
+          <SocialChip label="TW" href="https://www.x.com/parth5al/" />
         </div>
       </div>
 
@@ -220,7 +220,7 @@ export function Sidebar({
         className="flex flex-col gap-[4px] items-center justify-end text-[#9a9ca1] text-[9.5px] tracking-[1.5px] w-full whitespace-nowrap"
         style={{ fontFamily: MONO, fontWeight: 600 }}
       >
-        <p>FEBRUARY 2026</p>
+        <p>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}</p>
         <p>AHMEDABAD, INDIA</p>
       </div>
     </div>

@@ -6,7 +6,6 @@ const MONO = "'JetBrains Mono', monospace";
 const NAV = [
   { label: "ABOUT", id: "about" },
   { label: "WORK", id: "work" },
-  { label: "ARCHIVES", id: "archives" },
   { label: "CONTACT", id: "contact" },
 ];
 

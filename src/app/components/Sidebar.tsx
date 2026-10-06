@@ -8,8 +8,7 @@ type IconName = "about" | "work" | "archives" | "contact";
 const NAV: { num: string; label: string; id: string; icon: IconName }[] = [
   { num: "01", label: "About", id: "about", icon: "about" },
   { num: "02", label: "Work", id: "work", icon: "work" },
-  { num: "03", label: "Archives", id: "archives", icon: "archives" },
-  { num: "04", label: "Contact", id: "contact", icon: "contact" },
+  { num: "03", label: "Contact", id: "contact", icon: "contact" },
 ];
 
 // Pixel icons: each is a list of filled [x,y] cells on a 9x9 grid.

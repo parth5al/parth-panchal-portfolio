@@ -4,13 +4,12 @@ import { Sidebar } from "./components/Sidebar";
 import { Hero } from "./components/Hero";
 import { About } from "./components/About";
 import { Work } from "./components/Work";
-import { Archives } from "./components/Archives";
 import { Contact, Footer } from "./components/Contact";
 import { MobileNav } from "./components/MobileNav";
 import { AboutPage } from "./components/AboutPage";
 import { CaseStudy } from "./components/CaseStudy";
 
-const SECTIONS = ["about", "work", "archives", "contact"];
+const SECTIONS = ["about", "work", "contact"];
 
 export default function App() {
   const [active, setActive] = useState("about");
@@ -79,7 +78,6 @@ export default function App() {
           <Hero />
           <About onOpenAbout={() => setAboutOpen(true)} />
           <Work onOpenCase={(id) => setCaseOpen(id)} />
-          <Archives />
           <Contact />
           <Footer />
         </div>

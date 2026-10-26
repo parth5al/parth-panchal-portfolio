@@ -1,12 +1,17 @@
 export type Tag = { text: string; kind: "explored" | "shipped" };
-export type Option = { version: string; tag: Tag; body: string; highlight?: boolean };
+/** A string, or an array of strings rendered as separate paragraphs. */
+export type Text = string | string[];
+/** An image slot. Renders a labelled placeholder until `src` is provided. */
+export type Visual = { caption: string; src?: string };
+export type Option = { version: string; tag: Tag; body: Text; highlight?: boolean; visual?: Visual };
 export type JourneyGroup = {
   label: string;
-  intro?: string;
+  intro?: Text;
   options?: Option[];
-  note?: string;
+  note?: Text;
   call?: string;
-  outro?: string;
+  outro?: Text;
+  visual?: Visual;
   placeholder?: boolean;
 };
 
@@ -18,11 +23,11 @@ export type CaseData = {
   badge?: string;
   meta: { role: string; scope: string; team: string; focus: string };
   metaLabels?: { role: string; scope: string; team: string; focus: string };
-  context: string;
-  challenge?: { body: string; glance: [string, string][]; bet?: string; betLabel?: string };
+  context: Text;
+  challenge?: { body: Text; glance: [string, string][]; bet?: string; betLabel?: string };
   journey: JourneyGroup[];
   highlights: string[];
-  outcome: { stats: [string, string][]; reflection?: string };
+  outcome: { stats: [string, string][]; reflection?: Text };
   next?: { id: string; title: string; oneLiner: string };
 };
 

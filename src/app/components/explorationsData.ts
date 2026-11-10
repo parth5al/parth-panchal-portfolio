@@ -56,6 +56,21 @@ export const EXPLORATIONS: Exploration[] = [
       { title: "Some Good Here", artist: "Rinzen, Wennink", spotifyId: "1GwJKkSgXinLL8cFJl2U1q", cover: art("ab67616d00001e02622e58b0c8c9b0df162791e5"), note: "The order on the other side of the chaos." },
     ],
   },
+  {
+    slug: "signal",
+    title: "Signal",
+    kind: "AUDIO VISUALIZER",
+    year: "2026",
+    blurb: "A figure walks out of the noise, down a neon tunnel, into the light.",
+    concept:
+      "A tunnel of neon light-painting streams past as a backlit figure walks away from us toward the glowing doorway at its end, dissolving into the light. Signal waves pulse out of the doorway and ripple the streaks, and glitch bursts tear the picture apart.",
+    accent: "#ffb547",
+    songs: [
+      { title: "Break My Love", artist: "RÜFÜS DU SOL", spotifyId: "3tqyv30P7pO53IAIUo8IeN", cover: art("ab67616d00001e02fb00716a21e1dbffa585588b"), note: "Driving and bittersweet, made for the walk." },
+      { title: "I'll Find My Way To You", artist: "Elderbrook, Emmit Fenn", spotifyId: "2R2haDSmphwkn4kANdHU5P", cover: art("ab67616d00001e02de66824ee345ffabe7de0033"), note: "Every step toward the doorway." },
+      { title: "Aura", artist: "Avoure", spotifyId: "1kiC8s00MHvGn443VAOl45", cover: art("ab67616d00001e0293af3afd55bc67358a650c2e"), note: "Neon and hypnotic, a little glitchy at the edges." },
+    ],
+  },
 ];
 
 export const explorationAsset = (slug: string, file: string) => `${import.meta.env.BASE_URL}explorations/${slug}/${file}`;

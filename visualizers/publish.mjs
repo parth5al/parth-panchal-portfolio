@@ -17,6 +17,7 @@ const PUBLIC = path.join(ROOT, '..', 'public', 'explorations');
 const VIZ = {
   '01-prism-orb':   { slug: 'prism-orb',   poster: 3 },
   '02-convergence': { slug: 'convergence', poster: 13 },
+  '03-signal':      { slug: 'signal',      poster: 11 },
 };
 
 const only = process.argv[2];

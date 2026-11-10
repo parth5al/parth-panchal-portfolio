@@ -66,6 +66,17 @@ export default function App() {
     };
   }, []);
 
+  // Leaving a visualizer page (back button, close, Escape, browser Back) always lands on
+  // the Explorations section, including when the page was opened from a shared link.
+  const wasExploring = useRef(exploreOpen !== null);
+  useEffect(() => {
+    if (wasExploring.current && !exploreOpen) {
+      // the page has already unmounted here; jump (not smooth-scroll) while it's out of sight
+      document.getElementById("explorations")?.scrollIntoView({ behavior: "instant" as ScrollBehavior, block: "start" });
+    }
+    wasExploring.current = exploreOpen !== null;
+  }, [exploreOpen]);
+
   // History length right after opening. Embedded players (Spotify) can add history entries
   // of their own, so closing jumps back past all of them rather than a single step.
   const openedAt = useRef<number | null>(null);

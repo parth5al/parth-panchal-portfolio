@@ -134,7 +134,7 @@ function Card({ item, onOpen }: { item: Exploration; onOpen: () => void }) {
 
 export function Explorations({ onOpen }: { onOpen: (slug: string) => void }) {
   return (
-    <section id="explorations" className="bg-[#101013] rounded-[22px] px-[28px] py-[44px] flex flex-col gap-[28px]">
+    <section id="explorations" className="scroll-mt-[84px] md:scroll-mt-[20px] bg-[#101013] rounded-[22px] px-[28px] py-[44px] flex flex-col gap-[28px]">
       <PixelText text="EXPLORATIONS" className="text-[#f4f2f0]" style={{ fontSize: "clamp(20px,2.6vw,36px)" }} />
       <p className="text-[#9a9ca1] text-[15px] max-w-[560px]" style={{ fontFamily: "Inter, sans-serif", lineHeight: 1.6 }}>
         Things I make out of curiosity, not briefs. First up: audio visualizers. Each one is a

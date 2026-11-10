@@ -54,10 +54,11 @@ function Card({ block, onOpen }: { block: Block; onOpen?: () => void }) {
 
   return (
     <article
-      className={`group snap-start shrink-0 w-[560px] max-w-[85vw] h-[640px] rounded-[22px] overflow-hidden flex flex-col ${shell}`}
+      className={`group snap-start shrink-0 w-[560px] max-w-[85vw] h-[clamp(440px,calc(100vh-170px),620px)] rounded-[22px] overflow-hidden flex flex-col ${shell}`}
     >
-      {/* Cover — hero of the card (~68%) */}
-      <div className="relative h-[68%] overflow-hidden">
+      {/* Cover — hero of the card. Flexes to fill remaining space so the text
+          block below always keeps its full height (CTA never gets cropped). */}
+      <div className="relative flex-1 min-h-0 overflow-hidden">
         <ImageWithFallback
           src={block.cover}
           alt={`${block.title} cover`}
@@ -84,24 +85,27 @@ function Card({ block, onOpen }: { block: Block; onOpen?: () => void }) {
         </span>
       </div>
 
-      {/* Text below */}
-      <div className="flex flex-col gap-[14px] p-[28px] flex-1 justify-between">
-        <div className="flex flex-col gap-[4px]">
-          <p className="text-[#f4f2f0]" style={{ fontFamily: PIXEL, fontSize: "22px", lineHeight: 1.4 }}>
+      {/* Text below — natural height, compact spacing, pinned by the card */}
+      <div className="flex flex-col gap-[10px] p-[20px] shrink-0">
+        <div className="flex flex-col gap-[2px]">
+          <p className="text-[#f4f2f0]" style={{ fontFamily: PIXEL, fontSize: "20px", lineHeight: 1.2 }}>
             {block.title}
           </p>
           {block.titleRed && (
-            <p style={{ fontFamily: PIXEL, fontSize: "22px", lineHeight: 1.4, color: "#ed1c24" }}>
+            <p style={{ fontFamily: PIXEL, fontSize: "20px", lineHeight: 1.2, color: "#ed1c24" }}>
               {block.titleRed}
             </p>
           )}
         </div>
-        <p className="text-[#9a9ca1] text-[14px]" style={{ fontFamily: "Inter, sans-serif", lineHeight: 1.5 }}>
+        <p
+          className="text-[#9a9ca1] text-[13px] line-clamp-2"
+          style={{ fontFamily: "Inter, sans-serif", lineHeight: 1.45 }}
+        >
           {block.desc}
         </p>
         <button
           onClick={onOpen}
-          className="self-start text-[10px] tracking-[1.5px] transition-colors text-[#f4f2f0]"
+          className="self-start mt-[2px] text-[10px] tracking-[1.5px] transition-colors text-[#f4f2f0]"
           style={{ fontFamily: MONO, fontWeight: 600 }}
           onMouseEnter={(e) => (e.currentTarget.style.color = accent)}
           onMouseLeave={(e) => (e.currentTarget.style.color = "#f4f2f0")}
@@ -273,7 +277,7 @@ export function Work({ onOpenCase }: { onOpenCase?: (id: string) => void }) {
       {/* Tall wrapper: its height defines how long the section stays pinned */}
       <div ref={wrapperRef} style={{ height: `calc(100vh + ${maxScroll}px)` }}>
         {/* Sticky viewport */}
-        <div className="sticky top-0 h-screen overflow-hidden bg-[#101013] rounded-[22px] flex flex-col justify-center gap-[28px] py-[32px]">
+        <div className="sticky top-0 h-screen overflow-hidden bg-[#101013] rounded-[22px] flex flex-col justify-center gap-[18px] py-[24px]">
           <Header idx={activeIdx} />
 
           <div className="overflow-hidden">

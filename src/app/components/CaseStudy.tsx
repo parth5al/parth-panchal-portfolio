@@ -3,6 +3,7 @@ import { PixelText } from "./PixelText";
 import { CASES, type CaseData, type Option, type JourneyGroup, type Text, type Visual as VisualData } from "./caseData";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { BLOCKS } from "./Work";
+import { ProjectBlock, hasProjectBlock } from "./ProjectBlock";
 
 const MONO = "'JetBrains Mono', monospace";
 const BODY = "Inter, sans-serif";
@@ -294,7 +295,11 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
             const block = BLOCKS.find((b) => b.id === id);
             return block ? (
               <div className="w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] rounded-[22px] overflow-hidden relative border border-[rgba(244,242,240,0.08)]">
-                <ImageWithFallback src={block.cover} alt={data.title} className="absolute inset-0 w-full h-full object-cover" />
+                {block.cover ? (
+                  <ImageWithFallback src={block.cover} alt={data.title} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  hasProjectBlock(block.id) && <ProjectBlock id={block.id} variant="hero" />
+                )}
               </div>
             ) : (
               <Visual visual={{ caption: "HERO" }} ratio="aspect-[16/9] lg:aspect-[21/9]" />
@@ -420,7 +425,11 @@ export function CaseStudy({ id, onOpen, onClose }: { id: string; onOpen: (id: st
                 <span className="text-[#9a9ca1]" style={{ fontFamily: BODY, fontSize: "15px" }}>{nextBlock.desc}</span>
               </div>
               <div className="md:w-[45%] min-h-[220px] relative overflow-hidden bg-[#101013]">
-                <ImageWithFallback src={nextBlock.cover} alt={nextBlock.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                {nextBlock.cover ? (
+                  <ImageWithFallback src={nextBlock.cover} alt={nextBlock.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                ) : (
+                  <ProjectBlock id={nextBlock.id} variant="panel" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#141416] via-transparent to-transparent pointer-events-none" />
               </div>
             </div>

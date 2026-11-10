@@ -1,12 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import img2 from "../../imports/image-2.png";
-import img3 from "../../imports/image-3.png";
-import img4 from "../../imports/image-4.png";
+import { ProjectBlock } from "./ProjectBlock";
 import img5 from "../../imports/image-5.png";
 import img6 from "../../imports/image-6.png";
 import img7 from "../../imports/image-7.png";
-import img8 from "../../imports/image-8.png";
 
 const MONO = "'JetBrains Mono', monospace";
 const PIXEL = "'Press Start 2P', monospace";
@@ -19,21 +16,21 @@ type Block = {
   titleRed?: string;
   desc: string;
   chip: string;
-  cover: string;
+  cover?: string; // client (EHR) work has no screenshots — a ProjectBlock describes it instead
   kind: Kind;
   eyebrow: string;
 };
 
 export const BLOCKS: Block[] = [
   // ── EHR products ──
-  { id: "sunoh", kind: "ehr", eyebrow: "EHR", title: "AI SCRIBE APP", desc: "The AI scribe that turns a patient conversation into a ready-to-sign note.", chip: "40% LESS DOCUMENTATION TIME", cover: img2 },
-  { id: "smart", kind: "ehr", eyebrow: "EHR", title: "SMART UNIVERSITY", desc: "A giant learning library you can simply ask.", chip: "4,891 USERS IN 2 WEEKS", cover: img4 },
-  { id: "mobile", kind: "ehr", eyebrow: "EHR", title: "EHR MOBILE APP", desc: "A legacy clinical app, rebuilt for how care actually moves.", chip: "3 PATTERNS → 1", cover: img3 },
-  { id: "wound", kind: "ehr", eyebrow: "EHR", title: "WOUND CARE", desc: "Wound documentation finally got a home — desktop to point-of-care.", chip: "12 STEPS → 1 MODULE", cover: img8 },
+  { id: "sunoh", kind: "ehr", eyebrow: "EHR", title: "AI SCRIBE APP", desc: "The AI scribe that turns a patient conversation into a ready-to-sign note.", chip: "40% LESS DOCUMENTATION TIME" },
+  { id: "smart", kind: "ehr", eyebrow: "EHR", title: "SMART UNIVERSITY", desc: "A giant learning library you can simply ask.", chip: "4,891 USERS IN 2 WEEKS" },
+  { id: "mobile", kind: "ehr", eyebrow: "EHR", title: "EHR MOBILE APP", desc: "A legacy clinical app, rebuilt for how care actually moves.", chip: "3 PATTERNS → 1" },
+  { id: "wound", kind: "ehr", eyebrow: "EHR", title: "WOUND CARE", desc: "Wound documentation finally got a home — desktop to point-of-care.", chip: "12 STEPS → 1 MODULE" },
   // ── Independent work (distinct) ──
   { id: "satya", kind: "solo", eyebrow: "INDEPENDENT", title: "SATYANETRA", desc: "An intelligence platform for verifying what's real.", chip: "ENTIRE MVP, END TO END", cover: img7 },
   { id: "hack", kind: "solo", eyebrow: "INDEPENDENT", title: "HACKELITE", desc: "Broken UX to conversion-first, designed and shipped solo.", chip: "DESIGN → LIVE", cover: img5 },
-  { id: "xspaces", kind: "solo", eyebrow: "INDEPENDENT · ONGOING", title: "XSPACES", desc: "An AI-powered real-estate SaaS, built from scratch — ongoing.", chip: "ONGOING · 0→1", cover: img6 },
+  { id: "leadmagnets", kind: "solo", eyebrow: "INDEPENDENT · ONGOING", title: "LEADMAGNETS.TECH", desc: "An AI-powered real-estate SaaS, built from scratch — ongoing.", chip: "ONGOING · 0→1", cover: img6 },
 ];
 
 function Card({ block, onOpen }: { block: Block; onOpen?: () => void }) {
@@ -48,7 +45,7 @@ function Card({ block, onOpen }: { block: Block; onOpen?: () => void }) {
       ? "bg-[#141416] border border-[rgba(0,229,255,0.35)]"
       : "bg-[#141416] border border-white/5";
 
-  if (block.id === "xspaces") {
+  if (block.id === "leadmagnets") {
     shell = "bg-[#141416] border-2 border-dashed border-green-500";
   }
 
@@ -59,12 +56,18 @@ function Card({ block, onOpen }: { block: Block; onOpen?: () => void }) {
       {/* Cover — hero of the card. Flexes to fill remaining space so the text
           block below always keeps its full height (CTA never gets cropped). */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        <ImageWithFallback
-          src={block.cover}
-          alt={`${block.title} cover`}
-          className={`size-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${isSolo ? "grayscale-[0.15]" : ""}`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent opacity-80" />
+        {block.cover ? (
+          <>
+            <ImageWithFallback
+              src={block.cover}
+              alt={`${block.title} cover`}
+              className={`size-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${isSolo ? "grayscale-[0.15]" : ""}`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#141416] via-transparent to-transparent opacity-80" />
+          </>
+        ) : (
+          <ProjectBlock id={block.id} variant="card" />
+        )}
         <div
           className="absolute inset-0 transition-colors duration-500 motion-reduce:transition-none"
           style={{ backgroundColor: "transparent" }}

@@ -58,7 +58,8 @@ export function PixelText({
       className={className}
       style={{ fontFamily: "'Press Start 2P', monospace", ...style }}
     >
-      {display}
+      {/* let long names like "LEADMAGNETS.TECH" wrap after the dot, not mid-word */}
+      {display.replace(/\./g, ".\u200B")}
     </span>
   );
 }

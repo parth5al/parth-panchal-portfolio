@@ -366,13 +366,13 @@ export const CASES: Record<string, CaseData> = {
       reflection:
         "Owning everything — UX, copy, SEO, build, and hosting — showed me how much sharper a product gets when design and delivery live in one pair of hands. There's no 'well, the developer interpreted it differently' — what I designed is what shipped. It's the same systems thinking I bring to clinical software, applied to conversion. [ PLACEHOLDER — client-reported enquiry / traffic / ranking numbers to be added. ]",
     },
-    next: { id: "xspaces", title: "XSPACES", oneLiner: "An AI-powered real-estate SaaS, built from scratch." },
+    next: { id: "leadmagnets", title: "LEADMAGNETS.TECH", oneLiner: "An AI-powered real-estate SaaS, built from scratch." },
   },
 
-  xspaces: {
-    id: "xspaces",
+  leadmagnets: {
+    id: "leadmagnets",
     index: "07/08 · ONGOING",
-    title: "XSPACES",
+    title: "LEADMAGNETS.TECH",
     oneLiner: "Designing a 0→1 AI-powered real-estate SaaS — from design system to production-ready product.",
     badge: "LIVE WIP",
     meta: {
@@ -383,7 +383,7 @@ export const CASES: Record<string, CaseData> = {
     },
     metaLabels: { role: "ROLE", scope: "SCOPE", team: "STATUS", focus: "FOCUS" },
     context:
-      "XSpaces is a side venture I'm designing and building from zero — an AI-powered lead management SaaS for real-estate professionals. The premise is simple: real-estate agents drown in scattered leads, manual follow-up, and disconnected listing data. XSpaces gives them one intelligent workspace — where leads are prioritized by AI, listings are tracked end to end, and the busywork disappears. What makes this project different is that I own every decision: product direction, design system architecture, component hierarchy, AI workflow UX, and eventual engineering handoff. No team to absorb inconsistency. No second pass. The system has to be right the first time.",
+      "LeadMagnets.tech is a side venture I'm designing and building from zero — an AI-powered lead management SaaS for real-estate professionals. The premise is simple: real-estate agents drown in scattered leads, manual follow-up, and disconnected listing data. LeadMagnets.tech gives them one intelligent workspace — where leads are prioritized by AI, listings are tracked end to end, and the busywork disappears. What makes this project different is that I own every decision: product direction, design system architecture, component hierarchy, AI workflow UX, and eventual engineering handoff. No team to absorb inconsistency. No second pass. The system has to be right the first time.",
     challenge: {
       body: "Real-estate CRMs are broken in a predictable way — they're built around the salesperson's memory rather than intelligent surfacing. Agents miss follow-ups because there's no priority signal. They lose track of listings because the pipeline and the property data live in different tools. And they can't act on any of it because the interfaces are dense, dated, and built for desktops that never leave the desk. The opportunity was clear: design a system that thinks alongside the agent — surfacing the right lead at the right time, letting AI handle the repetitive qualification, and making the product feel like an extension of the agent's judgment rather than a tool they have to fight.",
       glance: [
@@ -417,7 +417,7 @@ export const CASES: Record<string, CaseData> = {
       },
       {
         label: "02 — THE AI LAYER: LEAD INTELLIGENCE",
-        intro: "The system is the foundation. The AI layer is the product's actual value proposition. Most CRMs surface every lead equally — the agent has to decide who to call. XSpaces inverts this: the AI surfaces who matters most, why, and what to say.",
+        intro: "The system is the foundation. The AI layer is the product's actual value proposition. Most CRMs surface every lead equally — the agent has to decide who to call. LeadMagnets.tech inverts this: the AI surfaces who matters most, why, and what to say.",
         options: [
           {
             version: "AI LEAD SCORING + PRIORITY QUEUE",
@@ -428,7 +428,7 @@ export const CASES: Record<string, CaseData> = {
           {
             version: "AI ASSISTANT PANEL",
             tag: explored("IN PROGRESS"),
-            body: "A contextual AI panel that lives alongside the lead detail view — not a separate chat, but an embedded intelligence layer. It suggests the next action (call, send listing, schedule viewing), drafts a follow-up message based on the lead's inquiry history, and flags if a listing they showed interest in has had a price drop. The goal is that the agent never has to decide what to do next — XSpaces tells them.",
+            body: "A contextual AI panel that lives alongside the lead detail view — not a separate chat, but an embedded intelligence layer. It suggests the next action (call, send listing, schedule viewing), drafts a follow-up message based on the lead's inquiry history, and flags if a listing they showed interest in has had a price drop. The goal is that the agent never has to decide what to do next — LeadMagnets.tech tells them.",
           },
           {
             version: "AUTOMATED FOLLOW-UP SEQUENCES",
@@ -499,7 +499,7 @@ export const CASES: Record<string, CaseData> = {
         ["0→1", "Product designed, core screens in active development"],
       ],
       reflection:
-        "XSpaces is the cleanest test I've given myself: build a production-grade product without a team, a deadline, or a brief. Everything I know about systems thinking, design engineering, and AI-first product design is in this project. The design system-first approach paid off — every new screen takes hours instead of days, because every decision is already made. The AI layer is where the real product design challenge lives: not 'how do we add AI' but 'where does the agent's judgment stop and the machine's pattern recognition begin?' I'm still figuring that out. That's the good part.",
+        "LeadMagnets.tech is the cleanest test I've given myself: build a production-grade product without a team, a deadline, or a brief. Everything I know about systems thinking, design engineering, and AI-first product design is in this project. The design system-first approach paid off — every new screen takes hours instead of days, because every decision is already made. The AI layer is where the real product design challenge lives: not 'how do we add AI' but 'where does the agent's judgment stop and the machine's pattern recognition begin?' I'm still figuring that out. That's the good part.",
     },
     next: { id: "sunoh", title: "AI SCRIBE APP", oneLiner: "The AI scribe that turns a patient conversation into a ready-to-sign note." },
   },

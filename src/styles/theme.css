@@ -239,3 +239,17 @@
     line-height: 1.5;
   }
 }
+/* ProjectBlock (client-work cards): one scan line sweeps down on each hover */
+.group:hover .pb-scan {
+  animation: pbScan 1.1s ease-out 1;
+}
+@keyframes pbScan {
+  0% { top: 0; opacity: 0; }
+  12% { opacity: 1; }
+  85% { opacity: 0.7; }
+  100% { top: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .group:hover .pb-scan { animation: none; }
+  .pb-pixel { transition-delay: 0ms !important; }
+}

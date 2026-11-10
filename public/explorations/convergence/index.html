@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Convergence — Visualizer 02</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #030106; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #hud { position: fixed; left: 12px; bottom: 10px; font: 12px/1.4 ui-monospace, monospace; color: #8a80a0; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="hud"></div>
+
+<!--
+  Convergence — chaotic purple/pink particle waves stream in from every side and
+  are pulled into ordered threads that spiral into a black mass with a glowing halo.
+
+  ~300k points, positions computed per frame from the point's id and the time, so
+  every frame is deterministic. All motion uses whole-number cycles of the 30s loop.
+
+  Pass 1: additive points into a float buffer (size grows with defocus = depth of field).
+  Pass 2: composite — background haze, black mass, halo ring, light bending, tone map, grain.
+
+  URL modes: (none) live · ?t=12 freeze · ?still=0,10&w=1920 · ?render=1&w=1920&mbps=40,14&name=a.mp4,b.mp4
+  Tuning: &grain=0.07 &grainsize=1 &ss=2
+-->
+<script id="common" type="x-shader/x-common">
+#define TAU 6.28318530718
+#define LOOP 30.0
+#define FOCAL 2.15
+#define RRIM 0.30            // event horizon: the lip where the funnel turns into a dark throat
+uniform float uTime;
+mat3 rotX(float a){ float c=cos(a), s=sin(a); return mat3(1.,0.,0., 0.,c,s, 0.,-s,c); }
+mat3 rotY(float a){ float c=cos(a), s=sin(a); return mat3(c,0.,-s, 0.,1.,0., s,0.,c); }
+mat3 rotZ(float a){ float c=cos(a), s=sin(a); return mat3(c,s,0., -s,c,0., 0.,0.,1.); }
+// the vortex sheet lies in local xy; world = VF * local
+mat3 vortexFrame(){ float ph = TAU*uTime/LOOP; return rotZ(0.10*sin(ph)) * rotX(-0.95) * rotZ(0.4); }
+void camera(out vec3 ro, out vec3 ww, out vec3 uu, out vec3 vv){
+  float ph = TAU*uTime/LOOP;
+  ro = rotY(0.20*sin(ph)) * rotX(0.05*sin(ph*2.0)) * vec3(0.0, 0.30, 6.2);
+  vec3 ta = vec3(0.16, -0.22, 0.0);
+  ww = normalize(ta - ro);
+  uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
+  vv = cross(uu, ww);
+}
+// Gravity well: the sheet's depth at radius r. Nearly flat far out, plunging into a narrow throat
+// (local z is measured toward the camera, so the funnel always sinks away from it).
+float well(float r){ return -0.42/(r + 0.20) + 0.091; }
+// The hollow inside the funnel, below the event-horizon lip: the dark volume of the black hole.
+float hollowAt(vec3 q){
+  float w = well(length(q.xy)), zt = well(RRIM);
+  return smoothstep(-0.025, 0.025, q.z - w) * smoothstep(0.025, -0.025, q.z - zt);
+}
+// world <-> local, with z flipped so the camera is always on the +z side
+float camSide(mat3 VF, vec3 ro){ return sign((transpose(VF) * ro).z); }
+vec3 toLocal(mat3 VF, float cs, vec3 p){ vec3 q = transpose(VF) * p; q.z *= cs; return q; }
+vec3 toWorld(mat3 VF, float cs, vec3 q){ q.z *= cs; return VF * q; }
+vec2 sphereSeg(vec3 ro, vec3 rd, vec3 c, float r){
+  vec3 oc = ro - c; float b = dot(oc, rd), h = b*b - dot(oc, oc) + r*r;
+  if (h <= 0.0) return vec2(1.0, 0.0);
+  h = sqrt(h); return vec2(-b - h, -b + h);
+}
+</script>
+
+<script id="pointVS" type="x-shader/x-vertex">
+precision highp int;
+uniform vec2  uRes;     // render-target size
+uniform float uPx;      // render pixels per output pixel
+uniform float uMaxPt;
+out vec3  vCol;
+out float vEdge;
+
+#define NSTR 16
+#define THREADS 5
+#define PER 22000
+#define NDUST 45000
+#define NRING 14
+#define RPTS 900
+#define NRAD 32
+#define LPTS 420
+
+uint pcgh(uint v){ uint st = v*747796405u + 2891336453u; uint w = ((st >> ((st >> 28u) + 4u)) ^ st) * 277803737u; return (w >> 22u) ^ w; }
+uint SEED;
+float rnd(){ SEED = pcgh(SEED); return float(SEED) * (1.0/4294967296.0); }
+
+// How much of the dark hollow lies between the camera and this point (0 = fully hidden, 1 = clear).
+float visibility(vec3 roL, vec3 pL){
+  vec3 d = pL - roL; float len = length(d); d /= len;
+  vec2 seg = sphereSeg(roL, d, vec3(0.0, 0.0, -1.38), 0.8);
+  float t0 = max(seg.x, 0.0), t1 = min(seg.y, len);
+  if (t1 <= t0) return 1.0;
+  float dt = (t1 - t0)/20.0, acc = 0.0;
+  for (int i = 0; i < 20; i++) acc += hollowAt(roL + d*(t0 + (float(i) + 0.5)*dt));
+  return exp(-acc*dt*4.0);
+}
+
+void main(){
+  float PH = TAU*uTime/LOOP;
+  float PULSE = 0.5 - 0.5*cos(PH*8.0);
+  mat3 VF = vortexFrame();
+  vec3 ro, ww, uu, vv; camera(ro, ww, uu, vv);
+  float cs = camSide(VF, ro);
+
+  vec3 purple = vec3(0.40, 0.22, 1.00);
+  vec3 violet = vec3(0.62, 0.30, 1.00);
+  vec3 pink   = vec3(1.00, 0.30, 0.78);
+  vec3 lav    = vec3(0.88, 0.80, 1.00);
+  vec3 deep   = vec3(0.30, 0.10, 0.70);
+
+  int id = gl_VertexID;
+  SEED = uint(id)*1973u + 9277u;
+  vec3 L, col; float bright, baseSize;
+
+  if (id < NSTR*PER){
+    // ---- strand particle: rides the warped sheet and spirals down the throat ----
+    int j = id / PER, k = id - j*PER;
+    uint keep = SEED; SEED = uint(j)*7919u + 17u;
+    float a1 = rnd(), a2 = rnd(), a3 = rnd(), a4 = rnd(), a5 = rnd(), a6 = rnd();
+    SEED = keep;
+    float th0 = (float(j) + 0.45*a1) / float(NSTR) * TAU;
+    float tf = (float(k % THREADS) + 0.5)/float(THREADS) - 0.5;  // position across the ribbon
+    float s = fract(rnd() - uTime*2.0/LOOP);                     // 1 = far out (chaos) -> 0 = singularity (order)
+    float r = 0.02 + 4.4*pow(s, 1.5);
+    float fan = tf * (TAU/float(NSTR)) * 0.95 * pow(1.0 - smoothstep(0.0, 0.55, s), 1.6);   // near the hole each thread takes its own lane
+    float th = th0 + fan + 2.3*pow(1.0 - s, 2.2) + 0.8*(1.0 - s) + 0.12*sin(PH + a2*TAU);
+    vec2 rad = vec2(cos(th), sin(th)), perp = vec2(-rad.y, rad.x);
+    float chaos = pow(s, 1.5) * (0.85 + 0.3*PULSE);
+    float w1 = sin(s*(5.0 + 5.0*a3) - PH*2.0 + a4*TAU);
+    float w2 = sin(s*(3.5 + 4.0*a5) + PH*3.0 + a6*TAU);
+    float w3 = sin(s*(15.0 + 6.0*a2) + PH*4.0 + a1*TAU);          // finer turbulence on top
+    L = vec3(rad*r + perp*chaos*(1.15*w1 + 0.22*w3),
+             well(r) + chaos*(1.1*w2 + 0.25*w3) + (a2 - 0.35)*4.2*s*smoothstep(0.06, 0.3, s));
+    float phi = s*5.0 + PH + a1*TAU;
+    L += vec3(perp*cos(phi), sin(phi)) * tf * 0.10 * s;          // threads braid together further out
+    vec3 g = vec3(rnd() + rnd() - 1.0, rnd() + rnd() - 1.0, rnd() + rnd() - 1.0);
+    float fling = rnd() < 0.07 ? 0.45*s : 0.0;
+    L += g * (0.002 + 0.22*pow(smoothstep(0.08, 1.0, s), 1.8) + fling);   // thin lines near the hole, fuzzy rope outside
+    float hue = smoothstep(0.25, 1.0, a3) + 0.25*sin(PH + s*3.0 + a4*6.0);
+    col = mix(mix(purple, violet, a5), pink, clamp(hue*0.9, 0.0, 1.0));
+    col = mix(col, lav, exp(-s*7.0)*0.35);                      // threads go pale as they converge
+    bright = 0.40 * smoothstep(1.0, 0.82, s) * smoothstep(0.0, 0.03, s) * (fling > 0.0 ? 0.6 : 1.0);
+    baseSize = mix(0.9, 1.9, rnd());
+  } else if (id < NSTR*PER + NDUST){
+    // ---- ambient dust drifting slowly inward ----
+    float s = fract(rnd() - uTime/LOOP);
+    float r = 0.6 + 6.5*s;
+    float th = rnd()*TAU + 1.6*(1.0 - s);
+    L = vec3(cos(th)*r, sin(th)*r, (rnd() - 0.5)*5.0);
+    col = mix(purple, pink, rnd()*0.7);
+    bright = 0.022 * smoothstep(1.0, 0.75, s) * smoothstep(0.0, 0.15, s);
+    baseSize = mix(0.8, 2.0, rnd());
+  } else {
+    // ---- faint spacetime fabric: dotted rings flowing inward + spiral radials, on the warped sheet ----
+    int gi = id - NSTR*PER - NDUST;
+    if (gi < NRING*RPTS){
+      int ri = gi / RPTS, pk = gi - ri*RPTS;
+      float x = fract(float(ri)/float(NRING) - uTime*2.0/LOOP);
+      float r = 0.03 + 3.9*pow(x, 1.8);
+      float th = (float(pk) + 0.5)/float(RPTS) * TAU;
+      L = vec3(cos(th)*r, sin(th)*r, well(r));
+      bright = 0.75 * smoothstep(1.0, 0.75, x) * smoothstep(0.0, 0.06, x) * clamp(0.35 + r, 0.35, 1.0);
+    } else {
+      int li = (gi - NRING*RPTS) / LPTS;
+      float u = fract(rnd() - uTime*2.0/LOOP);
+      float r = 0.03 + 3.9*pow(u, 1.8);
+      float th = (float(li) + 0.5)/float(NRAD) * TAU + 1.4*pow(1.0 - min(r/3.9, 1.0), 3.0);
+      L = vec3(cos(th)*r, sin(th)*r, well(r));
+      bright = 0.45 * smoothstep(1.0, 0.75, u) * smoothstep(0.0, 0.04, u);
+    }
+    col = mix(purple, violet, 0.4);
+    baseSize = 1.0;
+  }
+
+  // deeper in the throat: dimmer and darker violet
+  float depth = max(-L.z - 0.5, 0.0);
+  bright *= exp(-depth*1.15);
+  col = mix(col, deep, clamp(depth*0.6, 0.0, 0.8));
+
+  vec3 roL = toLocal(VF, cs, ro);
+  bright *= visibility(roL, L);                                // hidden behind the dark hollow
+  vec3 P = toWorld(VF, cs, L);
+
+  vec3 rel = P - ro;
+  float z = dot(rel, ww);
+  if (z < 0.4 || bright <= 1e-4){ gl_Position = vec4(2.0, 2.0, 2.0, 1.0); gl_PointSize = 0.0; vCol = vec3(0.0); vEdge = 0.0; return; }
+  vec2 uv = vec2(dot(rel, uu), dot(rel, vv)) * FOCAL / z;
+  gl_Position = vec4(uv.x * 2.0 * uRes.y / uRes.x, uv.y * 2.0, 0.0, 1.0);
+
+  // ---- depth of field: defocused points grow and dim, keeping their energy ----
+  float focus = length(ro);
+  float coc = 0.085 * abs(z - focus) / z * uRes.y;
+  float base = baseSize * uPx;
+  float size = clamp(max(base, coc), 1.0, uMaxPt);
+  vCol = col * bright * (base*base) / (size*size);
+  vEdge = smoothstep(3.0*uPx, 14.0*uPx, size);
+  gl_PointSize = size;
+}
+</script>
+
+<script id="pointFS" type="x-shader/x-fragment">
+in vec3 vCol;
+in float vEdge;
+out vec4 o;
+void main(){
+  vec2 pc = gl_PointCoord*2.0 - 1.0;
+  float d2 = dot(pc, pc);
+  if (d2 > 1.0) discard;
+  float d = sqrt(d2);
+  float gauss = exp(-d2*3.5) * 1.6;
+  float disc = smoothstep(1.0, 0.78, d) * (0.8 + 0.35*smoothstep(0.45, 0.95, d));   // bokeh with a soft rim
+  o = vec4(vCol * mix(gauss, disc, vEdge), 1.0);
+}
+</script>
+
+<script id="compFS" type="x-shader/x-fragment">
+uniform sampler2D uAcc;
+uniform vec2  uOutRes;
+uniform float uFlip;
+uniform float uGrain;
+uniform float uGrainPx;
+uniform float uExpo;
+out vec4 o;
+
+float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+
+void main(){
+  float PH = TAU*uTime/LOOP;
+  float PULSE = 0.5 - 0.5*cos(PH*8.0);
+  vec2 fc = gl_FragCoord.xy;
+  if (uFlip > 0.5) fc.y = uOutRes.y - fc.y;        // readback wants rows top-down
+  vec2 uv = (fc - 0.5*uOutRes) / uOutRes.y;
+
+  vec3 ro, ww, uu, vv; camera(ro, ww, uu, vv);
+  mat3 VF = vortexFrame();
+  float cs = camSide(VF, ro);
+  float zt = well(RRIM);
+  vec3 hw = toWorld(VF, cs, vec3(0.0, 0.0, zt));           // centre of the event-horizon lip
+  float zc = dot(hw - ro, ww);
+  vec2 hc = vec2(dot(hw - ro, uu), dot(hw - ro, vv)) * FOCAL / zc;
+  float rs = RRIM * FOCAL / zc;
+  vec2 dv = uv - hc;
+  float d = length(dv);
+  vec2 nd = dv / max(d, 1e-5);
+
+  // light bending: near the hole, the field gets dragged and smeared around it
+  float lens = rs*rs*0.30 / max(d, 1e-4) * smoothstep(rs*0.9, rs*1.9, d);
+  vec2 suv = uv - nd*lens + vec2(-nd.y, nd.x)*lens*0.35;
+  vec2 tc = (suv*uOutRes.y + 0.5*uOutRes) / uOutRes;
+  vec3 part = texture(uAcc, tc).rgb * uExpo;
+
+  // background: near-black violet with a faint nebula haze around the hole
+  vec3 bg = vec3(0.0012, 0.0006, 0.0026);
+  bg += vec3(0.007, 0.003, 0.016) * exp(-d*d*3.0);
+  bg += vec3(0.004, 0.0015, 0.007) * exp(-dot(uv - vec2(0.5, -0.3), uv - vec2(0.5, -0.3))*2.5);
+
+  // ---- march the gravity well in 3D: dark hollow, glowing lip, glowing funnel walls ----
+  vec3 rd = normalize(uv.x*uu + uv.y*vv + FOCAL*ww);
+  vec3 roL = toLocal(VF, cs, ro);
+  vec3 rdL = normalize(toLocal(VF, cs, ro + rd) - roL);
+  vec2 seg = sphereSeg(roL, rdL, vec3(0.0, 0.0, -0.9), 1.75);
+  float T = 1.0;
+  vec3 emis = vec3(0.0);
+  if (seg.y > seg.x){
+    const int STEPS = 110;
+    float t0 = max(seg.x, 0.0), dt = (seg.y - t0) / float(STEPS);
+    float t = t0 + dt*hash12(fc*0.731);
+    for (int i = 0; i < STEPS; i++){
+      vec3 p = roL + rdL*t;
+      float r = length(p.xy), w = well(r);
+      float ang = atan(p.y, p.x);
+      float dop = 0.5 + 0.5*cos(ang - PH - 0.6);                 // brighter side travels round once per loop
+      vec3 hcol = mix(vec3(0.66, 0.40, 1.00), vec3(1.00, 0.42, 0.80), 0.5 + 0.5*sin(ang*2.0 + PH));
+      float dr = length(vec2(r - RRIM, p.z - zt));
+      float ring = exp(-dr*dr/(0.045*0.045));                      // blurred glowing lip (event horizon)
+      float wall = exp(-pow((p.z - w)/0.05, 2.0)) * exp(-abs(r - RRIM)/0.32) * 0.22;   // the curved fabric glows near the lip
+      emis += T * (ring*mix(hcol, vec3(1.0, 0.88, 1.0), 0.25)*0.75 + wall*hcol) * (0.3 + 0.7*dop) * (0.85 + 0.3*PULSE) * dt * 9.0;
+      T *= exp(-hollowAt(p) * 11.0 * dt);
+      t += dt;
+    }
+  }
+  float vol = exp(-d/(rs*1.8)) * 0.035;                          // faint bloom around the hole
+  vec3 col = (bg + vol*vec3(0.7, 0.4, 1.0))*T + emis + part;
+
+  col = max(col, 0.0);
+  col = (col*(2.51*col + 0.03)) / (col*(2.43*col + 0.59) + 0.14);
+  col = pow(col, vec3(1.0/2.2));
+  col *= 1.0 - 0.38*pow(length(uv)*0.9, 2.2);
+
+  // film grain, one value per output pixel, new every frame
+  vec2 gp = floor(fc / uGrainPx);
+  float fr = floor(uTime*30.0 + 0.5);
+  vec2 seed = vec2(mod(fr*73.0, 1031.0), mod(fr*151.0, 977.0));
+  float n = hash12(gp + seed) + hash12(gp*1.37 + seed.yx + 19.2) - 1.0;
+  vec3 nc = vec3(hash12(gp + seed + 5.1), hash12(gp + seed + 9.7), hash12(gp + seed + 13.3)) - 0.5;
+  float lum = dot(col, vec3(0.299, 0.587, 0.114));
+  float amt = uGrain * (0.65 + 0.7*(1.0 - abs(lum*2.0 - 1.0)));
+  amt *= 0.35 + 0.65*smoothstep(0.02, 0.16, lum);
+  col += amt * (n*0.85 + nc*0.30);
+  o = vec4(clamp(col, 0.0, 1.0), 1.0);
+}
+</script>
+
+<script type="module">
+const LOOP = 30, FPS = 30, FRAMES = LOOP * FPS;
+const NPOINTS = 16 * 22000 + 45000 + 14 * 900 + 32 * 420;
+const qs = new URLSearchParams(location.search);
+const canvas = document.getElementById('gl');
+const hud = document.getElementById('hud');
+const gl = canvas.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+const log = (msg) => { console.log(msg); fetch('/log', { method: 'POST', body: String(msg) }).catch(() => {}); };
+if (!gl.getExtension('EXT_color_buffer_float')) log('WARN: no EXT_color_buffer_float');
+
+const COMMON = document.getElementById('common').textContent;
+const HEAD = '#version 300 es\nprecision highp float;\n';
+function compile(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function program(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+  gl.bindAttribLocation(p, 0, 'p');
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++) { const a = gl.getActiveUniform(p, i); u[a.name] = gl.getUniformLocation(p, a.name); }
+  return { p, u };
+}
+const pointProg = program(HEAD + COMMON + document.getElementById('pointVS').textContent,
+                          HEAD + document.getElementById('pointFS').textContent);
+const compProg = program(HEAD + 'in vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }',
+                         HEAD + COMMON + document.getElementById('compFS').textContent);
+const tri = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, tri);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+const emptyVAO = gl.createVertexArray();
+const triVAO = gl.createVertexArray();
+gl.bindVertexArray(triVAO); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.bindVertexArray(null);
+const MAX_PT = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1];
+
+const GRAIN = +(qs.get('grain') ?? 0.07), GRAIN_SIZE = +(qs.get('grainsize') || 1), EXPO = +(qs.get('expo') || 0.5);
+let acc = null;
+function makeAcc(w, h) {
+  if (acc && acc.w === w && acc.h === h) return;
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA16F, w, h);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  acc = { tex, fbo, w, h };
+}
+
+// Draws one frame: points at (outW*ss × outH*ss) into the float buffer, then composite at outW × outH.
+function drawFrame(t, outW, outH, ss, flip) {
+  makeAcc(outW * ss, outH * ss);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, acc.fbo);
+  gl.viewport(0, 0, acc.w, acc.h);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+  gl.useProgram(pointProg.p);
+  gl.uniform1f(pointProg.u.uTime, t);
+  gl.uniform2f(pointProg.u.uRes, acc.w, acc.h);
+  gl.uniform1f(pointProg.u.uPx, ss * Math.max(1, outH / 1080));
+  gl.uniform1f(pointProg.u.uMaxPt, MAX_PT);
+  gl.bindVertexArray(emptyVAO);
+  gl.drawArrays(gl.POINTS, 0, NPOINTS);
+  gl.disable(gl.BLEND);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, outW, outH);
+  gl.useProgram(compProg.p);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, acc.tex);
+  gl.uniform1i(compProg.u.uAcc, 0);
+  gl.uniform1f(compProg.u.uTime, t);
+  gl.uniform2f(compProg.u.uOutRes, outW, outH);
+  gl.uniform1f(compProg.u.uFlip, flip ? 1 : 0);
+  gl.uniform1f(compProg.u.uGrain, GRAIN);
+  gl.uniform1f(compProg.u.uGrainPx, GRAIN_SIZE * Math.max(1, outH / 1080));
+  gl.uniform1f(compProg.u.uExpo, EXPO);
+  gl.bindVertexArray(triVAO);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.bindVertexArray(null);
+}
+
+// Offline: composite into the canvas (flipped), readPixels gives top-down rows of exactly this frame.
+const OUT_W = +(qs.get('w') || 1920), OUT_H = Math.round(OUT_W * 9 / 16), SS = +(qs.get('ss') || 2);
+let pixels = null;
+function renderFrame(t) {
+  if (canvas.width !== OUT_W || canvas.height !== OUT_H) { canvas.width = OUT_W; canvas.height = OUT_H; }
+  drawFrame(t, OUT_W, OUT_H, SS, true);
+  pixels ??= new Uint8Array(OUT_W * OUT_H * 4);
+  gl.readPixels(0, 0, OUT_W, OUT_H, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  return pixels;
+}
+const checksum = px => { let h = 0; for (let i = 0; i < px.length; i += 4099) h = (h * 31 + px[i]) >>> 0; return h.toString(16); };
+
+async function stills() {
+  const out = document.createElement('canvas'); out.width = OUT_W; out.height = OUT_H;
+  const ctx = out.getContext('2d');
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  log('renderer: ' + (dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '?') + '  max point size ' + MAX_PT);
+  for (const t of qs.get('still').split(',').map(Number)) {
+    const t0 = performance.now();
+    ctx.putImageData(new ImageData(new Uint8ClampedArray(renderFrame(t)), OUT_W, OUT_H), 0, 0);
+    const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+    await fetch('/save?name=' + encodeURIComponent(`still-${t.toFixed(2)}.png`), { method: 'POST', body: blob });
+    log(`still t=${t} ${(performance.now() - t0).toFixed(0)}ms`);
+  }
+  await fetch('/done', { method: 'POST' });
+}
+
+// One render pass can feed several encoders, e.g. &mbps=40,14&name=master.mp4,web.mp4
+async function renderVideo() {
+  const { Muxer, ArrayBufferTarget } = await import('https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.mjs');
+  const rates = (qs.get('mbps') || '24').split(',').map(Number);
+  const names = (qs.get('name') || 'convergence-30s.mp4').split(',');
+  let encErr = null;
+  const outs = [];
+  for (let j = 0; j < rates.length; j++) {
+    let config = null;
+    for (const codec of ['avc1.640033', 'avc1.640032', 'avc1.640028', 'avc1.4d0033']) {
+      const c = { codec, width: OUT_W, height: OUT_H, bitrate: rates[j] * 1e6, framerate: FPS, bitrateMode: 'variable', latencyMode: 'quality', avc: { format: 'avc' } };
+      if ((await VideoEncoder.isConfigSupported(c)).supported) { config = c; break; }
+    }
+    if (!config) { log('ERROR: no supported H.264 config'); await fetch('/done', { method: 'POST' }); return; }
+    const target = new ArrayBufferTarget();
+    const muxer = new Muxer({ target, video: { codec: 'avc', width: OUT_W, height: OUT_H, frameRate: FPS }, fastStart: 'in-memory' });
+    const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { encErr = e; log('ERROR ' + e); } });
+    enc.configure(config);
+    outs.push({ target, muxer, enc, name: names[j] || `out-${rates[j]}mbps.mp4` });
+    log(`encoder ${j}: ${config.codec} ${OUT_W}x${OUT_H} @${rates[j]}Mbps -> ${outs[j].name}`);
+  }
+  const t0 = performance.now();
+  for (let i = 0; i < FRAMES; i++) {
+    const px = renderFrame(i / FPS);
+    const vf = new VideoFrame(px, { format: 'RGBA', codedWidth: OUT_W, codedHeight: OUT_H, timestamp: Math.round(i * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
+    for (const o of outs) o.enc.encode(vf, { keyFrame: i % (FPS * 2) === 0 });
+    vf.close();
+    while (outs.some(o => o.enc.encodeQueueSize > 6)) await new Promise(r => setTimeout(r, 5));
+    if (encErr) break;
+    if (i % 150 === 0) log(`frame ${i}/${FRAMES}  ${((performance.now() - t0) / 1000).toFixed(1)}s  checksum ${checksum(px)}`);
+  }
+  for (const o of outs) {
+    await o.enc.flush();
+    o.muxer.finalize();
+    await fetch('/save?name=' + encodeURIComponent(o.name), { method: 'POST', body: o.target.buffer });
+    log(`saved ${o.name} ${(o.target.buffer.byteLength / 1e6).toFixed(1)}MB`);
+  }
+  log(`done in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
+  await fetch('/done', { method: 'POST' });
+}
+
+function live() {
+  const fixed = qs.has('t') ? +qs.get('t') : null;
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, +(qs.get('dpr') || 1.5));   // ?dpr= caps live resolution (lighter on phones)
+    canvas.width = Math.round(innerWidth * dpr); canvas.height = Math.round(innerHeight * dpr);
+  };
+  addEventListener('resize', resize); resize();
+  const start = performance.now();
+  const tick = () => {
+    const t = fixed ?? ((performance.now() - start) / 1000) % LOOP;
+    drawFrame(t, canvas.width, canvas.height, 1, false);
+    if (qs.has('hud')) hud.textContent = t.toFixed(2) + 's';
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+if (qs.has('render')) renderVideo().catch(e => log('ERROR ' + e.stack));
+else if (qs.has('still')) stills().catch(e => log('ERROR ' + e.stack));
+else live();
+</script>
+</body>
+</html>

@@ -8,13 +8,20 @@ import { Contact, Footer } from "./components/Contact";
 import { MobileNav } from "./components/MobileNav";
 import { AboutPage } from "./components/AboutPage";
 import { CaseStudy } from "./components/CaseStudy";
+import { Explorations } from "./components/Explorations";
+import { ExplorationPage } from "./components/ExplorationPage";
 
-const SECTIONS = ["about", "work", "contact"];
+const SECTIONS = ["about", "work", "explorations", "contact"];
+
+// Visualizer pages get a shareable link that works on any static host: #/explorations/<slug>
+const EXPLORE_HASH = /^#\/explorations\/([\w-]+)$/;
+const exploreFromHash = () => window.location.hash.match(EXPLORE_HASH)?.[1] ?? null;
 
 export default function App() {
   const [active, setActive] = useState("about");
   const [aboutOpen, setAboutOpen] = useState(false);
   const [caseOpen, setCaseOpen] = useState<string | null>(null);
+  const [exploreOpen, setExploreOpen] = useState<string | null>(exploreFromHash);
   const [loading, setLoading] = useState(true);
   const [fade, setFade] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,6 +50,41 @@ export default function App() {
       clearTimeout(timer);
     };
   }, []);
+
+  // back/forward buttons and pasted links open or close the visualizer page
+  useEffect(() => {
+    const sync = () => {
+      const slug = exploreFromHash();
+      if (!slug) openedAt.current = null;
+      setExploreOpen(slug);
+    };
+    window.addEventListener("popstate", sync);
+    window.addEventListener("hashchange", sync);
+    return () => {
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("hashchange", sync);
+    };
+  }, []);
+
+  // History length right after opening. Embedded players (Spotify) can add history entries
+  // of their own, so closing jumps back past all of them rather than a single step.
+  const openedAt = useRef<number | null>(null);
+  const openExploration = (slug: string) => {
+    window.history.pushState({ exploration: slug }, "", `#/explorations/${slug}`);
+    openedAt.current = window.history.length;
+    setExploreOpen(slug);
+  };
+  const closeExploration = () => {
+    if (openedAt.current !== null) {
+      const steps = Math.max(1, window.history.length - openedAt.current + 1);
+      openedAt.current = null;
+      window.history.go(-steps);
+    } else {
+      // arrived via a shared link: just drop the hash
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      setExploreOpen(null);
+    }
+  };
 
   const navigate = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -78,6 +120,7 @@ export default function App() {
           <Hero />
           <About onOpenAbout={() => setAboutOpen(true)} />
           <Work onOpenCase={(id) => setCaseOpen(id)} />
+          <Explorations onOpen={openExploration} />
           <Contact />
           <Footer />
         </div>
@@ -87,6 +130,8 @@ export default function App() {
       {caseOpen && (
         <CaseStudy id={caseOpen} onOpen={(id) => setCaseOpen(id)} onClose={() => setCaseOpen(null)} />
       )}
+
+      {exploreOpen && <ExplorationPage slug={exploreOpen} onClose={closeExploration} />}
 
       {/* Subtle film-grain over the entire site */}
       <div className="noise-overlay" aria-hidden="true" />

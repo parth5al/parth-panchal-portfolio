@@ -3,12 +3,13 @@ import { Clock } from "./Clock";
 
 const MONO = "'JetBrains Mono', monospace";
 
-type IconName = "about" | "work" | "archives" | "contact";
+type IconName = "about" | "work" | "explorations" | "contact";
 
 const NAV: { num: string; label: string; id: string; icon: IconName }[] = [
   { num: "01", label: "About", id: "about", icon: "about" },
   { num: "02", label: "Work", id: "work", icon: "work" },
-  { num: "03", label: "Contact", id: "contact", icon: "contact" },
+  { num: "03", label: "Explorations", id: "explorations", icon: "explorations" },
+  { num: "04", label: "Contact", id: "contact", icon: "contact" },
 ];
 
 // Pixel icons: each is a list of filled [x,y] cells on a 9x9 grid.
@@ -30,14 +31,15 @@ const PIXELS: Record<IconName, [number, number][]> = {
     [1, 5], [4, 5], [7, 5],
     [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6],
   ],
-  // stacked archive boxes
-  archives: [
-    [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1],
-    [1, 2], [4, 2], [7, 2],
-    [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3],
-    [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5],
-    [1, 6], [4, 6], [7, 6],
-    [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7],
+  // audio waveform bars
+  explorations: [
+    [4, 1],
+    [2, 2], [4, 2], [6, 2],
+    [2, 3], [4, 3], [6, 3],
+    [1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [7, 4],
+    [2, 5], [4, 5], [6, 5],
+    [2, 6], [4, 6], [6, 6],
+    [4, 7],
   ],
   // envelope
   contact: [
@@ -81,11 +83,11 @@ function NavCard({
   return (
     <button
       onClick={onClick}
-      className={`group relative rounded-[12px] w-full text-left transition-colors duration-200 ${active ? "bg-[#ed1c24]" : "bg-[#141416] hover:bg-[#ed1c24]"
+      className={`group relative rounded-[12px] w-full text-left shrink-0 transition-colors duration-200 ${active ? "bg-[#ed1c24]" : "bg-[#141416] hover:bg-[#ed1c24]"
         }`}
     >
       <div className="overflow-clip rounded-[inherit] size-full">
-        <div className="flex flex-col gap-[32px] items-start p-[12px] relative size-full">
+        <div className="flex flex-col gap-[clamp(14px,3.2vh,32px)] items-start p-[12px] relative size-full">
           <div className="flex items-center justify-between w-full whitespace-nowrap">
             <div className="flex items-center gap-[10px]">
               <PixelIcon
@@ -157,7 +159,7 @@ export function Sidebar({
   onNavigate: (id: string) => void;
 }) {
   return (
-    <div className="bg-[#0a0a0b] flex flex-col gap-[20px] h-full items-start p-[20px] w-full">
+    <div className="bg-[#0a0a0b] flex flex-col gap-[clamp(10px,2vh,20px)] h-full items-start p-[clamp(12px,1.8vh,20px)] w-full overflow-hidden">
       {/* Logo + clock */}
       <div className="bg-[#141416] rounded-[12px] shrink-0 w-full">
         <div className="flex items-center justify-center gap-[20px] p-[12px]">
@@ -168,20 +170,22 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Nav cards */}
-      {NAV.map((item) => (
-        <NavCard
-          key={item.id}
-          num={item.num}
-          label={item.label}
-          icon={item.icon}
-          active={active === item.id}
-          onClick={() => onNavigate(item.id)}
-        />
-      ))}
+      {/* Nav cards — absorb the free space and scroll if the viewport is short */}
+      <div className="flex flex-col gap-[clamp(10px,2vh,20px)] w-full flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {NAV.map((item) => (
+          <NavCard
+            key={item.id}
+            num={item.num}
+            label={item.label}
+            icon={item.icon}
+            active={active === item.id}
+            onClick={() => onNavigate(item.id)}
+          />
+        ))}
+      </div>
 
-      {/* Spacer + actions */}
-      <div className="flex flex-1 flex-col gap-[12px] items-center justify-end min-h-px w-full">
+      {/* Actions pinned to the bottom */}
+      <div className="flex flex-col gap-[12px] items-center shrink-0 w-full">
         <div className="flex flex-col gap-[13px] items-start w-full">
           <button className="bg-[#141416] relative rounded-[12px] w-full border border-[rgba(244,242,240,0.12)] hover:bg-[#1d1d20] transition-colors">
             <div className="flex items-center justify-center p-[12px]">
@@ -216,7 +220,7 @@ export function Sidebar({
 
       {/* Date stamp */}
       <div
-        className="flex flex-col gap-[4px] items-center justify-end text-[#9a9ca1] text-[9.5px] tracking-[1.5px] w-full whitespace-nowrap"
+        className="flex flex-col gap-[4px] items-center justify-end shrink-0 text-[#9a9ca1] text-[9.5px] tracking-[1.5px] w-full whitespace-nowrap"
         style={{ fontFamily: MONO, fontWeight: 600 }}
       >
         <p>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}</p>

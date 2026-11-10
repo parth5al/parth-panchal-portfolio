@@ -6,6 +6,7 @@ const MONO = "'JetBrains Mono', monospace";
 const NAV = [
   { label: "ABOUT", id: "about" },
   { label: "WORK", id: "work" },
+  { label: "EXPLORATIONS", id: "explorations" },
   { label: "CONTACT", id: "contact" },
 ];
 
@@ -58,7 +59,7 @@ export function MobileNav({ onNavigate }: { onNavigate: (id: string) => void }) 
               className="text-left text-[#f4f2f0] hover:text-[#ed1c24]"
               style={{
                 fontFamily: "'Press Start 2P', monospace",
-                fontSize: "28px",
+                fontSize: "clamp(18px, 6.6vw, 28px)",
                 opacity: open ? 1 : 0,
                 transform: open ? "translateY(0)" : "translateY(8px)",
                 transition: `opacity 0.35s ease ${i * 60}ms, transform 0.35s ease ${i * 60}ms, color 0.2s`,

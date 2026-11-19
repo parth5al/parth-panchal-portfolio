@@ -1,5 +1,5 @@
 import { GreetingCycle } from "./GreetingCycle";
-import { HeroParticles } from "./HeroParticles";
+import GridScan from "./GridScan";
 
 const MONO = "'JetBrains Mono', monospace";
 
@@ -7,10 +7,26 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex flex-col gap-[10px] items-center justify-center min-h-[calc(100vh-40px)] px-[44px] py-[20px] rounded-[22px] bg-[#101013] overflow-hidden"
+      className="relative flex flex-col gap-[10px] items-center justify-center min-h-[calc(100vh-40px)] px-[44px] py-[20px] rounded-[22px] bg-[#0a0a0b] overflow-hidden"
     >
-      {/* Cursor-interactive particle field (sits behind everything) */}
-      <HeroParticles />
+      {/* 3D grid room with a red LiDAR-style scan; parallax follows the cursor,
+          clicks send a ping (sits behind everything) */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <GridScan
+          linesColor="#2d1818"
+          scanColor="#ef4444"
+          cells={9}
+          depth={3}
+          scanDuration={2.4}
+          scanDelay={1.6}
+          clickEffect="ping"
+          reflection={0.55}
+          scanWidth={0.6}
+          trail={0.3}
+          glow={0.5}
+          shading={0}
+        />
+      </div>
 
       {/* top-right chrome */}
       <div
